@@ -194,20 +194,6 @@ void settings() {
         else if (ch == 10)
             break;
     }
-    /*switch (choice)
-    {
-    case 0:
-        
-        break;
-    case 1:
-        g->max_items = MEDIUM_ITEMS;
-        g->time_limit = MEDIUM_TIME;
-        break;
-    case 2:
-        g->max_items = HARD_ITEMS;
-        g->time_limit = HARD_TIME;
-        break;
-    }*/
     clear();
         break;
         case 1:

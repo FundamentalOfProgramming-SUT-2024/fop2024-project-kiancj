@@ -1,5 +1,5 @@
-#ifndef map_h
-#define map_h
+ #ifndef map_h
+ #define map_h
 
 
 #include <ncurses.h>
@@ -14,10 +14,17 @@
 #include <wchar.h>
 
 
+////cyan is for magical:Z
+/////gold is for allla:~
+///////X for poisoned
 
 ///V stands for speed
 ////P stands for damage
 ////H stands for health
+
+/////` is for used dagger
+//// ! is for used magic wand
+//////> is for used normal arrow
 
 #define HARD_HEALTH 600
 #define MEDIUM_HEALTH 800
@@ -41,6 +48,12 @@
 
 
 int global=0;
+int speed_global=0;
+int power_global=0;
+int health_global=0;
+
+
+
 
 int min(int a, int b){
     if(a>b)
@@ -52,7 +65,7 @@ int max(int a, int b){
     return a;
     return b;
 }
-char** map;
+char ** map;
 int show[24][80];
 typedef struct {
     char items[30];
@@ -63,6 +76,7 @@ typedef struct{
     int ypos;
     int health;
     int damage;
+    int mark;
 }Monster;
 
 typedef struct {
@@ -89,6 +103,11 @@ typedef struct {
     int hungriness;
     int gold;
     int curr_weapon;
+    int has_speed;
+    int has_power;
+    int has_health;
+    int color;
+    int difficulty;
 } Player;
 
 typedef struct {
@@ -149,10 +168,16 @@ bool use_master_key(Inventory *inv, bool door_locked) {
     return false; // Door is unlocked
 }*/
 int check_monster(Monster * monster){
-    if(monster->health<=0){
+    if(!monster->mark){
+        if(monster->health<=0){
         return 1;
+     }else{
+        return 0;
+     }
     }
-    return 0;
+    else{
+        return 0;
+    }
 }
 void generate_passcode(char* passcode) {
     for (int i = 0; i < PASSCODE_LENGTH; ++i) {
@@ -273,7 +298,7 @@ int dfs(int bx, int by, int x, int y, int resx, int resy) {
     }
     return 0;
 }
- int  reduce_health(Player * player,Monster * monster){
+int reduce_health(Player * player,Monster * monster){
     int d=monster->damage;
     if(player->xpos==monster->xpos){
         if(player->ypos==monster->ypos+1){
@@ -361,6 +386,21 @@ void draw_room(Room room, int index,int level) {
                     mvprintw(room.y + i,room.x + j, "U");
                     attroff(COLOR_PAIR(1));
                 }
+                else if(map[room.y + i][room.x + j]=='`'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "d");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='>'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "n");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='!'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "w");
+                    attroff(COLOR_PAIR(10));
+                }
                 else if(map[room.y + i][room.x + j]=='S'){
                     attron(COLOR_PAIR(1));
                     mvprintw(room.y + i,room.x + j, "S");
@@ -375,6 +415,21 @@ void draw_room(Room room, int index,int level) {
                     attron(COLOR_PAIR(1));
                     mvprintw(room.y + i,room.x + j, "G");
                     attroff(COLOR_PAIR(1));
+                }
+                else if(map[room.y + i][room.x + j]=='X'){
+                    attron(COLOR_PAIR(6));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(6));
+                }
+                else if(map[room.y + i][room.x + j]=='~'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='Z'){
+                    attron(COLOR_PAIR(5));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(5));
                 }
                 else if(map[room.y + i][room.x + j]=='s'){
                     attron(COLOR_PAIR(8));
@@ -469,6 +524,21 @@ void draw_room(Room room, int index,int level) {
                     mvprintw(room.y + i, room.x + j, ".");
                     attroff(COLOR_PAIR(10));
                 }
+                else if(map[room.y + i][room.x + j]=='`'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "d");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='>'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "n");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='!'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "w");
+                    attroff(COLOR_PAIR(10));
+                }
                 else if(map[room.y + i][room.x + j]=='.'){
                     attron(COLOR_PAIR(10));
                     mvprintw(room.y + i, room.x + j, ".");
@@ -513,6 +583,21 @@ void draw_room(Room room, int index,int level) {
                     attron(COLOR_PAIR(8));
                     mvprintw(room.y + i, room.x + j, "n");
                     attroff(COLOR_PAIR(8));
+                }
+                else if(map[room.y + i][room.x + j]=='X'){
+                    attron(COLOR_PAIR(6));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(6));
+                }
+                else if(map[room.y + i][room.x + j]=='~'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='Z'){
+                    attron(COLOR_PAIR(5));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(5));
                 }
                 else if(map[room.y + i][room.x + j]=='w'){
                     attron(COLOR_PAIR(8));
@@ -597,6 +682,21 @@ void draw_room(Room room, int index,int level) {
                     mvprintw(room.y + i, room.x + j, ".");
                     attroff(COLOR_PAIR(5));
                 }
+                else if(map[room.y + i][room.x + j]=='`'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "d");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='>'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "n");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='!'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "w");
+                    attroff(COLOR_PAIR(10));
+                }
                 else if(map[room.y + i][room.x + j]=='.'){
                     attron(COLOR_PAIR(5));
                     mvprintw(room.y + i, room.x + j, ".");
@@ -626,6 +726,21 @@ void draw_room(Room room, int index,int level) {
                     attron(COLOR_PAIR(1));
                     mvprintw(room.y + i,room.x + j, "D");
                     attroff(COLOR_PAIR(1));
+                }
+                else if(map[room.y + i][room.x + j]=='X'){
+                    attron(COLOR_PAIR(6));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(6));
+                }
+                else if(map[room.y + i][room.x + j]=='~'){
+                    attron(COLOR_PAIR(10));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(10));
+                }
+                else if(map[room.y + i][room.x + j]=='Z'){
+                    attron(COLOR_PAIR(5));
+                    mvprintw(room.y + i,room.x + j, "f");
+                    attroff(COLOR_PAIR(5));
                 }
                 else if(map[room.y + i][room.x + j]=='G'){
                     attron(COLOR_PAIR(1));
@@ -744,14 +859,28 @@ void draw_room(Room room, int index,int level) {
      
     
 }
-int damage_enemies_melee(Player * player,Monster * monster,int weapon){
+int damage_enemies_melee(Player * player,Monster * monster,int weapon,int flag){
     int d;
     if(weapon==MACE){
-        d=5;
+        if(flag){
+            d=10;
+        }
+        else{
+            d=5;
+        }
     }
     else if(weapon==SWORD){
-        d=10;
+        if(flag){
+            d=20;
+        }
+        else{
+            d=10;
+        }
     }
+    else{
+        d=0;
+    }
+    
     if(player->xpos==monster->xpos){
         if(player->ypos==monster->ypos+1){
             monster->health-=d;
@@ -799,12 +928,141 @@ int damage_enemies_melee(Player * player,Monster * monster,int weapon){
         else{
             return 0;
         }
-    }
+      }
+    
     else{
         return 0;
     }
 }
-
+int damage_enemies_shooting(Player * player,Monster *monster,int weapon,int flag,char direction){
+    player->weapon[weapon].count--;
+    char c;
+    int d;
+    int range;
+    int x=player->xpos;
+    int y=player->ypos;
+    int x_p=x;
+    int y_p=y;
+    if(player->curr_weapon==DAGGER){
+        if(flag==1){
+            d=24;
+        }
+        else{
+            d=12;
+        }
+        range=5;
+        c ='`';
+    }
+    else if(player->curr_weapon==NORMAL_ARROW){
+        if(flag==1){
+            d=10;
+        }
+        else{
+            d=5;
+        }
+        range=5;
+        c='>';
+    }
+    else if(player->curr_weapon==MAGIC_WAND){
+        if(flag==1){
+            d=15;
+        }
+        else{
+            d=30;
+        }
+        range=10;
+        c='!';
+    }
+    else{
+        d=0;
+        range=0;
+    }
+    while(range--){
+        x_p=x;
+        y_p=y;
+        if(direction=='w'||direction=='W'){
+            y--;
+        }
+        else if(direction=='s' || direction=='S'){
+            y++;
+        }
+        else if(direction=='a' || direction=='A'){
+            x--;
+        }
+        else if(direction=='D'|| direction=='d'){
+            x++;
+        }
+        if(map[y][x]=='O' || map[y][x]=='+' || map[y][x]=='?'){
+            
+            map[y_p][x_p]=c;
+            if(c=='`'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y_p,x_p,"d");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+            else if(c=='>'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y_p,x_p,"n");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+            else if(c=='!'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y_p,x_p,"w");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+            return 0;
+        }
+        else if(map[y][x]=='|' || map[y][x]=='-'){
+            map[y_p][x_p]=c;
+            if(c=='`'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y_p,x_p,"d");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+            else if(c=='>'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y_p,x_p,"n");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+            else if(c=='!'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y_p,x_p,"w");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+            return 0;
+        }
+        else if(y==monster->ypos && x==monster->xpos){
+            monster->health-=d;
+            return 1;
+        }
+    }
+    map[y][x]=c;
+    if(c=='`'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y,x,"d");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+            else if(c=='>'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y,x,"n");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+            else if(c=='!'){
+                attron(COLOR_PAIR(10));
+                mvprintw(y,x,"w");
+                attroff(COLOR_PAIR(10));
+                refresh();
+            }
+    return 0;
+}
 
 void generate_rooms(Room rooms[], int count,int level) {
     
@@ -831,6 +1089,21 @@ void generate_rooms(Room rooms[], int count,int level) {
         else if(i==5){
             rooms[i].door_x = rooms[i].x;
             rooms[i].door_y = rooms[i].y + rooms[i].height / 2;
+        }
+        else if(i==3){
+            if (door_position == 0) {
+            rooms[i].door_x = rooms[i].x + rooms[i].width / 2;
+            rooms[i].door_y = rooms[i].y;
+        } else if (door_position == 1) {
+            rooms[i].door_x = rooms[i].x + rooms[i].width - 1;
+            rooms[i].door_y = rooms[i].y + rooms[i].height / 2;
+        } else if (door_position == 2) {
+            rooms[i].door_x = rooms[i].x;
+            rooms[i].door_y = rooms[i].y + rooms[i].height / 2;
+        } else {
+            rooms[i].door_x = rooms[i].x + rooms[i].width - 1;
+            rooms[i].door_y = rooms[i].y + rooms[i].height / 2;
+        }
         }
         else{
         if (door_position == 0) {
@@ -920,9 +1193,6 @@ void generate_rooms(Room rooms[], int count,int level) {
             }
             
     }
-
-
-
     }
         //dagger
     int dagger_placed=0;
@@ -937,11 +1207,53 @@ void generate_rooms(Room rooms[], int count,int level) {
             }
             
     }
+    /////magical food
+    int magical_food_placed=0;
+    while (!magical_food_placed) {
+        int Y_M_F = (rand() % (rooms[3].height - 2)) + rooms[3].y + 1;
+        int X_M_F = (rand() % (rooms[3].width - 2)) + rooms[3].x + 1;
+
+        // Ensure the food is not placed on the door or other objects
+            if(map[Y_M_F][X_M_F]=='.'){
+                map[Y_M_F][X_M_F] = 'Z';
+                magical_food_placed = 1;
+            }
+            
+    }
+    ////////////
+    /////alla food
+    int alla_food_placed=0;
+    while (!alla_food_placed) {
+        int Y_A_F = (rand() % (rooms[4].height - 2)) + rooms[4].y + 1;
+        int X_A_F = (rand() % (rooms[4].width - 2)) + rooms[4].x + 1;
+
+        // Ensure the food is not placed on the door or other objects
+            if(map[Y_A_F][X_A_F]=='.'){
+                map[Y_A_F][X_A_F] = '~';
+                alla_food_placed = 1;
+            }
+            
+    }
+    ////////////
+    /////poisoned food
+    int poisoned_food_placed=0;
+    while (!poisoned_food_placed) {
+        int Y_P_F = (rand() % (rooms[2].height - 2)) + rooms[2].y + 1;
+        int X_P_F = (rand() % (rooms[2].width - 2)) + rooms[2].x + 1;
+
+        // Ensure the food is not placed on the door or other objects
+            if(map[Y_P_F][X_P_F]=='.'){
+                map[Y_P_F][X_P_F] = 'X';
+                poisoned_food_placed = 1;
+            }
+            
+    }
+    ////////////
     ///speed drug
     int speed_placed=0;
     while (!speed_placed) {
-        int Y_V = (rand() % (rooms[2].height - 2)) + rooms[1].y + 1;
-        int X_V = (rand() % (rooms[2].width - 2)) + rooms[1].x + 1;
+        int Y_V = (rand() % (rooms[2].height - 2)) + rooms[2].y + 1;
+        int X_V = (rand() % (rooms[2].width - 2)) + rooms[2].x + 1;
 
         // Ensure the dagger is not placed on the door or other objects
             if(map[Y_V][X_V]=='.'){
@@ -953,8 +1265,8 @@ void generate_rooms(Room rooms[], int count,int level) {
     ///health drug
     int health_placed=0;
     while (!health_placed) {
-        int Y_H = (rand() % (rooms[3].height - 2)) + rooms[2].y + 1;
-        int X_H = (rand() % (rooms[3].width - 2)) + rooms[2].x + 1;
+        int Y_H = (rand() % (rooms[3].height - 2)) + rooms[3].y + 1;
+        int X_H = (rand() % (rooms[3].width - 2)) + rooms[3].x + 1;
 
         // Ensure the dagger is not placed on the door or other objects
             if(map[Y_H][X_H]=='.'){
@@ -967,8 +1279,8 @@ void generate_rooms(Room rooms[], int count,int level) {
         //damage drug
     int damage_placed=0;
     while (!damage_placed) {
-        int Y_D_D = (rand() % (rooms[4].height - 2)) + rooms[2].y + 1;
-        int X_D_D = (rand() % (rooms[4].width - 2)) + rooms[2].x + 1;
+        int Y_D_D = (rand() % (rooms[4].height - 2)) + rooms[4].y + 1;
+        int X_D_D = (rand() % (rooms[4].width - 2)) + rooms[4].x + 1;
 
         // Ensure the dagger is not placed on the door or other objects
             if(map[Y_D_D][X_D_D]=='.'){
@@ -987,6 +1299,19 @@ void generate_rooms(Room rooms[], int count,int level) {
             if(map[Y_W][X_W]=='.'){
                 map[Y_W][X_W] = 'w';
                 wound_placed = 1;
+            }
+            
+    }
+    //sword
+    int sword_placed=0;
+    while (!sword_placed) {
+        int Y_S = (rand() % (rooms[1].height - 2)) + rooms[1].y + 1;
+        int X_S = (rand() % (rooms[1].width - 2)) + rooms[1].x + 1;
+
+        // Ensure the dagger is not placed on the door or other objects
+            if(map[Y_S][X_S]=='.'){
+                map[Y_S][X_S] = 's';
+                sword_placed = 1;
             }
             
     }
@@ -1064,7 +1389,7 @@ void generate_rooms(Room rooms[], int count,int level) {
 }
 
 Player* setup_player(Room rooms[], int room_count) {
-    Player* player = malloc(sizeof(Player));
+    Player* player = (Player *)malloc(sizeof(Player));
    
 
     Room room = rooms[0];
@@ -1079,7 +1404,7 @@ Player* setup_player(Room rooms[], int room_count) {
 }
 
 Monster* setup_monster(Room rooms[], int room_count,char c,int i) {
-    Monster* monster = malloc(sizeof(Monster));
+    Monster* monster = (Monster *)malloc(sizeof(Monster));
     Room room = rooms[i];
     int monster_placed=0;
     while(!monster_placed){
@@ -1136,6 +1461,21 @@ void player_move(int y, int x, Player* player) {
             attron(COLOR_PAIR(8)); // Assuming room color; adapt as needed
             mvprintw(player->ypos, player->xpos, "s");
             attroff(COLOR_PAIR(8));
+            break;
+        case '`':
+            attron(COLOR_PAIR(10)); // Assuming room color; adapt as needed
+            mvprintw(player->ypos, player->xpos, "d");
+            attroff(COLOR_PAIR(10));
+            break;
+        case '!':
+            attron(COLOR_PAIR(10)); // Assuming room color; adapt as needed
+            mvprintw(player->ypos, player->xpos, "w");
+            attroff(COLOR_PAIR(10));
+            break;
+        case '>':
+            attron(COLOR_PAIR(10)); // Assuming room color; adapt as needed
+            mvprintw(player->ypos, player->xpos, "n");
+            attroff(COLOR_PAIR(10));
             break;
             case 'n':
             attron(COLOR_PAIR(8)); // Assuming room color; adapt as needed
@@ -1196,11 +1536,28 @@ void player_move(int y, int x, Player* player) {
             break;
         case 'f':
             map[player->ypos][player->xpos]='.';
-            attron(COLOR_PAIR(5)); // Assuming room color; adapt as needed
+            attron(COLOR_PAIR(5)); 
             mvprintw(player->ypos, player->xpos, ".");
             attroff(COLOR_PAIR(5));
             break;
-
+        case 'X':
+            map[player->ypos][player->xpos]='.';
+            attron(COLOR_PAIR(5)); 
+            mvprintw(player->ypos, player->xpos, ".");
+            attroff(COLOR_PAIR(5));
+            break;
+        case '~':
+            map[player->ypos][player->xpos]='.';
+            attron(COLOR_PAIR(5)); 
+            mvprintw(player->ypos, player->xpos, ".");
+            attroff(COLOR_PAIR(5));
+            break;
+        case 'Z':
+            map[player->ypos][player->xpos]='.';
+            attron(COLOR_PAIR(5)); 
+            mvprintw(player->ypos, player->xpos, ".");
+            attroff(COLOR_PAIR(5));
+            break;
     }
 
     // Move player
@@ -1255,7 +1612,9 @@ void check_position(int new_y, int new_x, Player* player,Room rooms[]) {
         case 's':
              c1 = getchar();
             if((c1 == 'p') || (c1 == 'P')) {
-                player->weapon[SWORD].count++;
+                if(player->weapon[SWORD].count==0){
+                    player->weapon[SWORD].count++;
+                }
                 map[new_y][new_x]='.';
                 player_move(new_y, new_x, player);
             }
@@ -1263,7 +1622,7 @@ void check_position(int new_y, int new_x, Player* player,Room rooms[]) {
                 player_move(new_y, new_x, player);
             }
             break;
-        case 'd':
+        case '`':
              c1 = getchar();
             if((c1 == 'p') || (c1 == 'P')) {
                 player->weapon[DAGGER].count++;
@@ -1274,7 +1633,7 @@ void check_position(int new_y, int new_x, Player* player,Room rooms[]) {
                 player_move(new_y, new_x, player);
             }
             break;
-        case 'n':
+        case '>':
              c1 = getchar();
             if((c1 == 'p') || (c1 == 'P')) {
                 player->weapon[NORMAL_ARROW].count++;
@@ -1285,10 +1644,43 @@ void check_position(int new_y, int new_x, Player* player,Room rooms[]) {
                 player_move(new_y, new_x, player);
             }
             break;
-        case 'w':
+        case '!':
              c1 = getchar();
             if((c1 == 'p') || (c1 == 'P')) {
                 player->weapon[MAGIC_WAND].count++;
+                map[new_y][new_x]='.';
+                player_move(new_y, new_x, player);
+            }
+            else{
+                player_move(new_y, new_x, player);
+            }
+            break;
+        case 'd':
+             c1 = getchar();
+            if((c1 == 'p') || (c1 == 'P')) {
+                player->weapon[DAGGER].count+=10;
+                map[new_y][new_x]='.';
+                player_move(new_y, new_x, player);
+            }
+            else{
+                player_move(new_y, new_x, player);
+            }
+            break;
+        case 'n':
+             c1 = getchar();
+            if((c1 == 'p') || (c1 == 'P')) {
+                player->weapon[NORMAL_ARROW].count+=20;
+                map[new_y][new_x]='.';
+                player_move(new_y, new_x, player);
+            }
+            else{
+                player_move(new_y, new_x, player);
+            }
+            break;
+        case 'w':
+             c1 = getchar();
+            if((c1 == 'p') || (c1 == 'P')) {
+                player->weapon[MAGIC_WAND].count+=8;
                 map[new_y][new_x]='.';
                 player_move(new_y, new_x, player);
             }
@@ -1410,13 +1802,24 @@ void check_position(int new_y, int new_x, Player* player,Room rooms[]) {
                 move(player->ypos, player->xpos);
                 break;
             }
-            
+            case 'X':
+                player->food[3].count++;
+                player_move(new_y, new_x, player);
+                break;
+            case '~':
+                player->food[1].count++;
+                player_move(new_y, new_x, player);
+                break;
+            case 'Z':
+                player->food[2].count++;
+                player_move(new_y, new_x, player);
+                break;
          default:
              move(player->ypos, player->xpos);
              break;
     }
 }
-void draw_health_screen(Player *player, Room rooms[]) {
+void draw_food_screen(Player *player, Room rooms[]) {
     clear(); // Clear the screen
     mvprintw(2, 5, "=== Player Status ===");
     
@@ -1440,10 +1843,15 @@ void draw_health_screen(Player *player, Room rooms[]) {
     attroff(COLOR_PAIR(2));
 
     // Display food count
+    attron(COLOR_PAIR(6));
     mvprintw(6, 5, "Simple Food: %d", player->food[0].count);
-    mvprintw(9, 5, "Precious Food: %d", player->food[1].count);
+    attroff(COLOR_PAIR(6));
+    attron(COLOR_PAIR(10));
+    mvprintw(9, 5, "Alla Food: %d", player->food[1].count);
+    attroff(COLOR_PAIR(10));
+    attron(COLOR_PAIR(5));
     mvprintw(12, 5, "Magic Food: %d", player->food[2].count);
-    mvprintw(15, 5, "Poisoned Food: %d", player->food[3].count);
+    attroff(COLOR_PAIR(5));
     mvprintw(60, 5, "Press 'F' to go back");
     refresh();
     char ch;
@@ -1452,8 +1860,78 @@ void draw_health_screen(Player *player, Room rooms[]) {
         
         case '1':
         player->food[0].count--;
-        if(player->hungriness>15){
-            player->hungriness-=15;
+        if(player->food[3].count>0){
+            player->food[3].count--;
+            player->health-=15;
+            clear();
+        for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            attron(COLOR_PAIR(1));
+            mvprintw(26,60,"YOU ATE POISONED FOOD.");
+            attroff(COLOR_PAIR(1));
+        break;
+        }
+        else{
+        if(player->hungriness>30){
+            player->hungriness-=30;
+            if(player->health>985){
+                player->health=1000;
+            }
+            else{
+                 player->health+=15;
+            }
+           
+        }
+        else{
+            player->hungriness=0;
+            if(player->health>985){
+                player->health=1000;
+            }
+            else{
+                player->health+=15;
+            }
+            
+        }
+        clear();
+        for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+        break;
+        }
+        case '2':
+            player->has_power=1;
+            player->food[1].count--;
+            if(player->hungriness>30){
+            player->hungriness-=30;
+            if(player->health>985){
+                player->health=1000;
+            }
+            else{
+                 player->health+=15;
+            }
+           
+        }
+        else{
+            player->hungriness=0;
+            if(player->health>985){
+                player->health=1000;
+            }
+            else{
+                player->health+=15;
+            }
+            
+        }
+        clear();
+        for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+        break;
+        case '3':
+            player->has_speed=1;
+            player->food[2].count--;
+            if(player->hungriness>30){
+            player->hungriness-=30;
             if(player->health>985){
                 player->health=1000;
             }
@@ -1494,7 +1972,7 @@ void draw_weapon_screen(Player *player, Room rooms[]) {
 
     mvprintw(4, 5, "CLOSE RANGE: ");
 
-    mvprintw(10,5,"LONG RANGE: ");
+    mvprintw(11,5,"LONG RANGE: ");
     // Display weapons count
     if(player->curr_weapon==MACE){
         attron(COLOR_PAIR(2));
@@ -1523,15 +2001,228 @@ void draw_weapon_screen(Player *player, Room rooms[]) {
     }
     attron(COLOR_PAIR(8));
     mvprintw(6, 5, "MACE: %d", player->weapon[0].count);
+    mvprintw(6, 22,"SYMBOL:m   DAMGE:5   RANGE:1");
     mvprintw(9, 5, "SWORD: %d", player->weapon[SWORD].count);
+    mvprintw(9, 22,"SYMBOL:s   DAMGE:10   RANGE:1");
     mvprintw(13, 5, "DAGGER: %d", player->weapon[DAGGER].count);
+    mvprintw(13, 22,"SYMBOL:d   DAMGE:12   RANGE:5");
     mvprintw(16, 5, "NORMAL_ARROW: %d", player->weapon[NORMAL_ARROW].count);
+    mvprintw(16, 22,"SYMBOL:n   DAMGE:5   RANGE:5");
+    mvprintw(19, 22,"SYMBOL:w   DAMGE:15   RANGE:10");
     mvprintw(19, 5, "MAGIC_WAND: %d", player->weapon[MAGIC_WAND].count);
     attroff(COLOR_PAIR(8));
     refresh();
+    noecho();
     char ch;
     ch=getch(); 
     switch(ch){
+        case 'w':
+        noecho();
+            player->curr_weapon=-1;
+            char g=getch();
+            if(g=='1'){
+                player->curr_weapon=MACE;
+                clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            }
+            else if(g=='3'){
+                if(player->weapon[DAGGER].count>0){
+                    player->curr_weapon=DAGGER;
+                    clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+                }
+                else{
+                    clear();
+                    for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                    attron(COLOR_PAIR(4));
+                    mvprintw(0,80,"YOU DONT HAVE ENOUGH DAGGERS.");
+                    attroff(COLOR_PAIR(4));
+                }
+                }
+            }
+            else if(g=='5'){
+                if(player->weapon[MAGIC_WAND].count>0){
+                    player->curr_weapon=MAGIC_WAND;
+                    clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+                }
+                else{
+                    clear();
+                    for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                    attron(COLOR_PAIR(4));
+                    mvprintw(0,80,"YOU DONT HAVE ENOUGH MAGIC WANDS.");
+                    attroff(COLOR_PAIR(4));
+                }
+                }
+            }
+            else if(g=='4'){
+                if(player->weapon[NORMAL_ARROW].count>0){
+                    player->curr_weapon=NORMAL_ARROW;
+                    clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+                }
+                else{
+                    clear();
+                    for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                    attron(COLOR_PAIR(4));
+                    mvprintw(0,80,"YOU DONT HAVE ENOUGH ARROWS.");
+                    attroff(COLOR_PAIR(4));
+                }
+                }
+                
+            }
+            else if(g=='2'){
+                if(player->weapon[SWORD].count>0){
+                    player->curr_weapon=SWORD;
+                    clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+                }
+                else{
+                    clear();
+                    for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                    attron(COLOR_PAIR(4));
+                    mvprintw(0,80,"YOU DONT HAVE A SWORD.");
+                    attroff(COLOR_PAIR(4));
+                }
+                }
+            }
+            else{
+                clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            }
+            break;
+        case '1':
+            if(player->curr_weapon==-1){
+                player->curr_weapon=MACE;
+                clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            }
+            else{
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            }
+            break;
+        case '2':
+            if(player->curr_weapon==-1){
+                if(player->weapon[SWORD].count>0){
+                    player->curr_weapon=SWORD;
+                    clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+                }
+                else{
+                    clear();
+                    for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                    attron(COLOR_PAIR(4));
+                    mvprintw(0,80,"YOU DONT HAVE A SWORD.");
+                    attroff(COLOR_PAIR(4));
+                }
+                }
+            }
+            else{
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            }
+            break;
+        case '3':
+            if(player->curr_weapon==-1){
+                if(player->weapon[DAGGER].count>0){
+                    player->curr_weapon=DAGGER;
+                    clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+                }
+                else{
+                    clear();
+                    for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                    attron(COLOR_PAIR(4));
+                    mvprintw(0,80,"YOU DONT HAVE ENOUGH DAGGERS.");
+                    attroff(COLOR_PAIR(4));
+                }
+                }
+            }
+
+            else{
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            }
+            break;
+
+        case '4':
+            if(player->curr_weapon==-1){
+                if(player->weapon[NORMAL_ARROW].count>0){
+                    player->curr_weapon=NORMAL_ARROW;
+                    clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+                }
+                else{
+                    clear();
+                    for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                    attron(COLOR_PAIR(4));
+                    mvprintw(0,80,"YOU DONT HAVE ENOUGH ARROWS.");
+                    attroff(COLOR_PAIR(4));
+                }
+                }
+            }
+            else{
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            }
+            break;
+        case '5':
+            if(player->curr_weapon==-1){
+                if(player->weapon[MAGIC_WAND].count>0){
+                    player->curr_weapon=MAGIC_WAND;
+                    clear();
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+                }
+                else{
+                    clear();
+                    for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                    attron(COLOR_PAIR(4));
+                    mvprintw(0,80,"YOU DONT HAVE ENOUGH MAGIC WANDS.");
+                    attroff(COLOR_PAIR(4));
+                }
+                }
+            }
+            else{
+                for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            }
+            break;
         default:clear();
         for (int i = 0; i < ROOM_COUNT; i++) {
                     draw_room(rooms[i], i,player->level_floor);
@@ -1557,12 +2248,43 @@ void draw_drug_screen(Player *player, Room rooms[]) {
     char ch;
     ch=getch(); 
     switch(ch){
-        default:clear();
+        case '1':
+        if(player->drug[SPEED].count>0){
+            player->has_speed=1;
+            player->drug[SPEED].count-=1;
+            clear();
+            }
+             for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            break;
+        case '2':
+            if(player->drug[POWER].count>0){
+            player->has_power=1;
+            player->drug[POWER].count-=1;
+            clear();
+            }
+             for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            break;
+        case '3':
+        if(player->drug[HEALTH].count>0){
+            player->has_health=1;
+            player->drug[HEALTH].count-=1;
+            clear();
+            }
+             for (int i = 0; i < ROOM_COUNT; i++) {
+                    draw_room(rooms[i], i,player->level_floor);
+                }
+            break;
+
+    default:clear();
         for (int i = 0; i < ROOM_COUNT; i++) {
                     draw_room(rooms[i], i,player->level_floor);
                 }
                 break;
-    }
+        }
     refresh();
     
 }
@@ -1570,7 +2292,24 @@ void draw_drug_screen(Player *player, Room rooms[]) {
 void handle_input(char c, Player* player, Room rooms[]) {
     int n_x = player->xpos;
     int n_y = player->ypos;
-    switch (c) {
+    
+        if(player->has_speed){
+        switch (c){
+        case 'k': case 'K': n_y-=1;check_position(n_y, n_x, player,rooms);n_y-=1; break;
+        case 'j': case 'J': n_y+=1;check_position(n_y, n_x, player,rooms);n_y++; break;
+        case 'l': case 'L': n_x+=1;check_position(n_y, n_x, player,rooms);n_x++; break;
+        case 'h': case 'H': n_x-=1; check_position(n_y, n_x, player,rooms);n_x--; break;
+        case 'u': case 'U': n_x+=1; n_y-=1;check_position(n_y, n_x, player,rooms);n_x+=1; n_y-=1; break;
+        case 'y': case 'Y': n_x-=1; n_y-=1;check_position(n_y, n_x, player,rooms); n_x-=1; n_y-=1;break;
+        case 'n': case 'N': n_x+=1; n_y+=1;check_position(n_y, n_x, player,rooms);n_x+=1; n_y+=1; break;
+        case 'b': case 'B': n_x-=1; n_y+=1;check_position(n_y, n_x, player,rooms);n_x-=1; n_y+=1; break;
+        case 'e': case 'E': draw_food_screen(player,rooms);break;
+        case 'i': case 'I': draw_weapon_screen(player,rooms);break;
+        case 't': case 'T': draw_drug_screen(player,rooms);break;
+        }
+        }
+        else{
+        switch (c){
         case 'k': case 'K': n_y--; break;
         case 'j': case 'J': n_y++; break;
         case 'l': case 'L': n_x++; break;
@@ -1579,11 +2318,13 @@ void handle_input(char c, Player* player, Room rooms[]) {
         case 'y': case 'Y': n_x--; n_y--; break;
         case 'n': case 'N': n_x++; n_y++; break;
         case 'b': case 'B': n_x--; n_y++; break;
-        case 'e': case 'E': draw_health_screen(player,rooms);break;
+        case 'e': case 'E': draw_food_screen(player,rooms);break;
         case 'i': case 'I': draw_weapon_screen(player,rooms);break;
         case 't': case 'T': draw_drug_screen(player,rooms);break;
+        }
+        }
         
-    }
+    
     check_position(n_y, n_x, player,rooms);
 }
 void draw_health_bar(int y, int x, int health, int max_health) {
@@ -1624,9 +2365,9 @@ int main_map() {
     init_pair(7, COLOR_WHITE, COLOR_BLACK);   // Player
     init_pair(8, COLOR_ORANGE, COLOR_BLACK);
     init_pair(10, COLOR_YELLOW, COLOR_BLACK);
-    map = malloc(MAP_HEIGHT * sizeof(char*));
+    map = (char**)malloc(MAP_HEIGHT * sizeof(char*));
     for(int i=0;i<MAP_HEIGHT;i++){
-        *(map+i)=malloc(MAP_WIDTH*sizeof(char));
+        *(map+i)=(char *)malloc(MAP_WIDTH*sizeof(char));
     }
     Room rooms[ROOM_COUNT];
     generate_rooms(rooms, ROOM_COUNT,1);
@@ -1664,6 +2405,12 @@ int main_map() {
     giant->damage=20;
     snake->damage=25;
     undeed->damage=30;
+    ///////
+    demon->mark=0;
+    fire->mark=0;
+    snake->mark=0;
+    giant->mark=0;
+    undeed->mark=0;
     ///////////
     Player* player = setup_player(rooms, ROOM_COUNT);
     player->health=EASY_HEALTH;
@@ -1687,58 +2434,170 @@ int main_map() {
         if((player->xpos<rooms[1].x+rooms[1].width)&&(player->xpos>rooms[1].x)&&(player->ypos>rooms[1].y)&&(player->ypos<rooms[1].y+rooms[1].height)){
             player->health--;
         }
+        if(player->has_speed){
+            speed_global++;
+        }
+        if(player->has_power){
+            power_global++;
+        }
+        if(player->has_health){
+            health_global++;
+        }
+        if(speed_global%10==0){
+            player->has_speed=0;
+        }
+        if(power_global%10==0){
+            player->has_power=0;
+        }
+        if(health_global%10==0){
+            player->has_health=0;
+        }
+        if(player->has_power){
+            player->weapon[MACE].damage=10;
+            player->weapon[DAGGER].damage=24;
+            player->weapon[SWORD].damage=20;
+            player->weapon[NORMAL_ARROW].damage=10;
+            player->weapon[MAGIC_WAND].damage=30;
+        }
+        if(!(player->has_power)){
+            player->weapon[MACE].damage=5;
+            player->weapon[DAGGER].damage=12;
+            player->weapon[SWORD].damage=10;
+            player->weapon[NORMAL_ARROW].damage=5;
+            player->weapon[MAGIC_WAND].damage=15;
+        }
+        if(player->has_health && player->health<=(health-2)){
+            player->health+=2;
+        } 
         draw_health_bar(0,40,player->health,health);
         if(reduce_health(player,demon)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<DEMON HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player,undeed)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<UNDEED HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player,snake)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<SNAKE HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player,giant)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<GIANT HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player,fire)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<FIRE MONSTER HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         global++;
         if(global%10==0){
-            mvprintw(24,10,"              ");
-            mvprintw(24,70,"                       ");
-            mvprintw(25,60,"                                 ");
-            mvprintw(26,70,"                       ");
+            mvprintw(0,80,"                                         ");
+            mvprintw(24,10,"                       ");
+            mvprintw(24,70,"                               ");
+            mvprintw(25,60,"                                                      ");
+            mvprintw(26,70,"                                ");
         }
         //mvprintw(0,0,"HP:%d",player->health);
         mvprintw(24,0,"Gold:%d",player->gold);
         handle_input(input, player, rooms);
         if(input==' '){
-            if(damage_enemies_melee(player,demon,player->curr_weapon)){
-                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+            if(player->curr_weapon==MACE || player->curr_weapon==SWORD){
+            if(damage_enemies_melee(player,demon,player->curr_weapon,player->has_power)){
+                if(demon->health<=0){
+                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+                }
             }
-            else if(damage_enemies_melee(player,fire,player->curr_weapon)){
-                mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+            else if(damage_enemies_melee(player,fire,player->curr_weapon,player->has_power)){
+                if(fire->health<=0){
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+                }
             }
-            else if(damage_enemies_melee(player,undeed,player->curr_weapon)){
-                mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+            else if(damage_enemies_melee(player,undeed,player->curr_weapon,player->has_power)){
+                if(undeed->health<=0){
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+                }
             }
-            else if(damage_enemies_melee(player,snake,player->curr_weapon)){
-                mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+            else if(damage_enemies_melee(player,snake,player->curr_weapon,player->has_power)){
+                if(snake->health<=0){
+                    mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",0);
+                }
+                else{
+                     mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+                }
             }
-            else if(damage_enemies_melee(player,giant,player->curr_weapon)){
-                mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+            else if(damage_enemies_melee(player,giant,player->curr_weapon,player->has_power)){
+                if(giant->health<=0){
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+                }
             }
+            }
+            else if(player->curr_weapon==1 || player->curr_weapon==2 || player->curr_weapon==3 ){
+                char u=getchar();
+                if(damage_enemies_shooting(player,demon,player->curr_weapon,player->has_power,u)){
+                   
+                if(demon->health<=0){
+                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+                }
+                }
+                else if(damage_enemies_shooting(player,fire,player->curr_weapon,player->has_power,u)){
+                    
+                if(fire->health<=0){
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+                }
+                }
+                else if(damage_enemies_shooting(player,giant,player->curr_weapon,player->has_power,u)){
+                    
+                if(giant->health<=0){
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+                }
+                }
+                else if(damage_enemies_shooting(player,snake,player->curr_weapon,player->has_power,u)){
+                   
+                if(snake->health<=0){
+                    mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",0);
+                }
+                else{
+                     mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+                }
+                }
+                else if(damage_enemies_shooting(player,undeed,player->curr_weapon,player->has_power,u)){
+                    
+                if(undeed->health<=0){
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+                }
+                }
+            }
+            player->weapon[player->curr_weapon].count+=4;
         }
         if(check_monster(demon)){
             mvprintw(26,70,"YOU KILLED DEMON");
@@ -1746,6 +2605,10 @@ int main_map() {
                 mvprintw(demon->ypos,demon->xpos,".");
                 attroff(COLOR_PAIR(5));
                 map[demon->ypos][demon->xpos]='.';
+                demon->ypos=0;
+                demon->xpos=0;
+                move(player->ypos,player->xpos);
+                demon->mark=1;
         }
         else if(check_monster(fire)){
             mvprintw(26,70,"YOU KILLED FIRE MONSTER");
@@ -1753,6 +2616,10 @@ int main_map() {
                 mvprintw(fire->ypos,fire->xpos,".");
                 attroff(COLOR_PAIR(5));
                 map[fire->ypos][fire->xpos]='.';
+                fire->ypos=0;
+                fire->xpos=0;
+                move(player->ypos,player->xpos);
+                fire->mark=1;
         }
         else if(check_monster(giant)){
             mvprintw(26,70,"YOU KILLED GIANT");
@@ -1760,6 +2627,10 @@ int main_map() {
                 mvprintw(giant->ypos,giant->xpos,".");
                 attroff(COLOR_PAIR(5));
                 map[giant->ypos][giant->xpos]='.';
+                giant->ypos=0;
+                giant->xpos=0;
+                move(player->ypos,player->xpos);
+                giant->mark=1;
         }
         else if(check_monster(snake)){
             mvprintw(26,70,"YOU KILLED SNAKE");
@@ -1767,13 +2638,21 @@ int main_map() {
                 mvprintw(snake->ypos,snake->xpos,".");
                 attroff(COLOR_PAIR(5));
                 map[snake->ypos][snake->xpos]='.';
+                snake->ypos=0;
+                snake->xpos=0;
+                move(player->ypos,player->xpos);
+                snake->mark=1;
         }
         else if(check_monster(undeed)){
             mvprintw(26,70,"YOU KILLED UNDEED");
             attron(COLOR_PAIR(5));
                 mvprintw(undeed->ypos,undeed->xpos,".");
                 attroff(COLOR_PAIR(5));
+                undeed->ypos=0;
+                undeed->xpos=0;
                 map[undeed->ypos][undeed->xpos]='.';
+                move(player->ypos,player->xpos);
+                undeed->mark=1;
         }
         if(player->health<=0){
             clear();
@@ -1787,13 +2666,15 @@ int main_map() {
             char g=getchar();
             return 0;
         }
-        player->hungriness++; 
+        player->hungriness++;
+        
         if(player->hungriness>=150){
             player->health--;
         }
-        else if(player->hungriness<150 && player->health<(health-2)){
+        else if(player->hungriness<150 && player->health<=(health-1)){
             player->health++;
         }
+        
         refresh();
     }
     
@@ -1808,9 +2689,9 @@ int main_map() {
     free(undeed);
     free(snake);
     clear();
-    map = malloc(MAP_HEIGHT * sizeof(char*));
+    map = (char**)malloc(MAP_HEIGHT * sizeof(char*));
     for(int i=0;i<MAP_HEIGHT;i++){
-        *(map+i)=malloc(MAP_WIDTH*sizeof(char));
+        *(map+i)=(char*)malloc(MAP_WIDTH*sizeof(char));
     }
     Room rooms2[ROOM_COUNT];
     generate_rooms(rooms2, ROOM_COUNT,2);
@@ -1869,34 +2750,220 @@ int main_map() {
         }
             draw_health_bar(0,40,player2->health,health);
             if(reduce_health(player2,demon)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<DEMON HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player2,undeed)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<UNDEED HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player2,snake)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<SNAKE HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player2,giant)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<GIANT HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player2,fire)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<FIRE MONSTER HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         global++;
         if(global%10==0){
-            mvprintw(24,10,"              ");
-            mvprintw(24,70,"                       ");
+            mvprintw(0,80,"                                         ");
+            mvprintw(24,10,"                     ");
+            mvprintw(24,70,"                               ");
+            mvprintw(25,60,"                                                  ");
+            mvprintw(26,70,"                               ");
+        }
+        if(player2->has_speed){
+            speed_global++;
+        }
+        if(player2->has_power){
+            power_global++;
+        }
+        if(player2->has_health){
+            health_global++;
+        }
+        if(speed_global%10==0){
+            player2->has_speed=0;
+        }
+        if(power_global%10==0){
+            player2->has_power=0;
+        }
+        if(health_global%10==0){
+            player2->has_health=0;
+        }
+        if(player2->has_power){
+            player2->weapon[MACE].damage=10;
+            player2->weapon[DAGGER].damage=24;
+            player2->weapon[SWORD].damage=20;
+            player2->weapon[NORMAL_ARROW].damage=10;
+            player2->weapon[MAGIC_WAND].damage=30;
+        }
+        if(!(player2->has_power)){
+            player2->weapon[MACE].damage=5;
+            player2->weapon[DAGGER].damage=12;
+            player2->weapon[SWORD].damage=10;
+            player2->weapon[NORMAL_ARROW].damage=5;
+            player2->weapon[MAGIC_WAND].damage=15;
+        }
+        if(player2->has_health && player2->health<=(health-2)){
+            player2->health+=2;
+        } 
+        if(input==' '){
+            if(player2->curr_weapon==MACE || player2->curr_weapon==SWORD){
+            if(damage_enemies_melee(player2,demon,player2->curr_weapon,player2->has_power)){
+                if(demon->health<=0){
+                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+                }
+            }
+            else if(damage_enemies_melee(player2,fire,player2->curr_weapon,player2->has_power)){
+                if(fire->health<=0){
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+                }
+            }
+            else if(damage_enemies_melee(player2,undeed,player2->curr_weapon,player2->has_power)){
+                if(undeed->health<=0){
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+                }
+            }
+            else if(damage_enemies_melee(player2,snake,player2->curr_weapon,player2->has_power)){
+                if(snake->health<=0){
+                    mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",0);
+                }
+                else{
+                     mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+                }
+            }
+            else if(damage_enemies_melee(player2,giant,player2->curr_weapon,player2->has_power)){
+                if(giant->health<=0){
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+                }
+            }
+            }
+            else if(player2->curr_weapon==1 || player2->curr_weapon==2 || player2->curr_weapon==3 ){
+                char u=getchar();
+                if(damage_enemies_shooting(player2,demon,player2->curr_weapon,player2->has_power,u)){
+                   
+                if(demon->health<=0){
+                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+                }
+                }
+                else if(damage_enemies_shooting(player2,fire,player2->curr_weapon,player2->has_power,u)){
+                    
+                if(fire->health<=0){
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+                }
+                }
+                else if(damage_enemies_shooting(player2,giant,player2->curr_weapon,player2->has_power,u)){
+                    
+                if(giant->health<=0){
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+                }
+                }
+                else if(damage_enemies_shooting(player2,snake,player2->curr_weapon,player2->has_power,u)){
+                   
+                if(snake->health<=0){
+                    mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",0);
+                }
+                else{
+                     mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+                }
+                }
+                else if(damage_enemies_shooting(player2,undeed,player2->curr_weapon,player2->has_power,u)){
+                    
+                if(undeed->health<=0){
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+                }
+                }
+            }
+            player2->weapon[player2->curr_weapon].count+=4;
+        }
+        if(check_monster(demon)){
+            mvprintw(26,70,"YOU KILLED DEMON");
+                attron(COLOR_PAIR(5));
+                mvprintw(demon->ypos,demon->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[demon->ypos][demon->xpos]='.';
+                demon->ypos=0;
+                demon->xpos=0;
+                move(player2->ypos,player2->xpos);
+                demon->mark=1;
+        }
+        else if(check_monster(fire)){
+            mvprintw(26,70,"YOU KILLED FIRE MONSTER");
+                attron(COLOR_PAIR(5));
+                mvprintw(fire->ypos,fire->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[fire->ypos][fire->xpos]='.';
+                fire->ypos=0;
+                fire->xpos=0;
+                move(player2->ypos,player2->xpos);
+                fire->mark=1;
+        }
+        else if(check_monster(giant)){
+            mvprintw(26,70,"YOU KILLED GIANT");
+                attron(COLOR_PAIR(5));
+                mvprintw(giant->ypos,giant->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[giant->ypos][giant->xpos]='.';
+                giant->ypos=0;
+                giant->xpos=0;
+                move(player2->ypos,player2->xpos);
+                giant->mark=1;
+        }
+        else if(check_monster(snake)){
+            mvprintw(26,70,"YOU KILLED SNAKE");
+                attron(COLOR_PAIR(5));
+                mvprintw(snake->ypos,snake->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[snake->ypos][snake->xpos]='.';
+                snake->ypos=0;
+                snake->xpos=0;
+                move(player2->ypos,player2->xpos);
+                snake->mark=1;
+        }
+        else if(check_monster(undeed)){
+            mvprintw(26,70,"YOU KILLED UNDEED");
+            attron(COLOR_PAIR(5));
+                mvprintw(undeed->ypos,undeed->xpos,".");
+                attroff(COLOR_PAIR(5));
+                undeed->ypos=0;
+                undeed->xpos=0;
+                map[undeed->ypos][undeed->xpos]='.';
+                move(player2->ypos,player2->xpos);
+                undeed->mark=1;
         }
         if(player2->health<=0){
             clear();
@@ -1917,7 +2984,7 @@ int main_map() {
         if(player2->hungriness>=50){
             player2->health--;
         }
-        else if(player2->hungriness<150 && player2->health<(health-2)){
+        else if(player2->hungriness<150 && player2->health<=(health-1)){
             player2->health++;
         }
         refresh();
@@ -1934,9 +3001,9 @@ int main_map() {
     free(undeed);
     free(snake);
     clear();
-    map = malloc(MAP_HEIGHT * sizeof(char*));
+    map =(char**)malloc(MAP_HEIGHT * sizeof(char*));
     for(int i=0;i<MAP_HEIGHT;i++){
-        *(map+i)=malloc(MAP_WIDTH*sizeof(char));
+        *(map+i)=(char*)malloc(MAP_WIDTH*sizeof(char));
     }
     Room rooms3[ROOM_COUNT];
     generate_rooms(rooms3, ROOM_COUNT,3);
@@ -1994,34 +3061,220 @@ int main_map() {
         }
             draw_health_bar(0,40,player3->health,health);
             if(reduce_health(player3,demon)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<DEMON HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player3,undeed)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<UNDEED HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player3,snake)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<SNAKE HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player3,giant)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<GIANT HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player3,fire)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<FIRE MONSTER HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         global++;
         if(global%10==0){
-            mvprintw(24,10,"              ");
-            mvprintw(24,70,"                          ");
+            mvprintw(0,80,"                                        ");
+            mvprintw(24,10,"                     ");
+            mvprintw(24,70,"                               ");
+            mvprintw(25,60,"                                                        ");
+            mvprintw(26,70,"                                ");
+        }
+        if(player3->has_speed){
+            speed_global++;
+        }
+        if(player3->has_power){
+            power_global++;
+        }
+        if(player3->has_health){
+            health_global++;
+        }
+        if(speed_global%10==0){
+            player3->has_speed=0;
+        }
+        if(power_global%10==0){
+            player3->has_power=0;
+        }
+        if(health_global%10==0){
+            player3->has_health=0;
+        }
+        if(player3->has_power){
+            player3->weapon[MACE].damage=10;
+            player3->weapon[DAGGER].damage=24;
+            player3->weapon[SWORD].damage=20;
+            player3->weapon[NORMAL_ARROW].damage=10;
+            player3->weapon[MAGIC_WAND].damage=30;
+        }
+        if(!(player3->has_power)){
+            player3->weapon[MACE].damage=5;
+            player3->weapon[DAGGER].damage=12;
+            player3->weapon[SWORD].damage=10;
+            player3->weapon[NORMAL_ARROW].damage=5;
+            player3->weapon[MAGIC_WAND].damage=15;
+        }
+        if(player3->has_health && player3->health<=(health-1)){
+            player3->health+=2;
+        } 
+        if(input==' '){
+            if(player3->curr_weapon==MACE || player3->curr_weapon==SWORD){
+            if(damage_enemies_melee(player3,demon,player3->curr_weapon,player3->has_power)){
+                if(demon->health<=0){
+                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+                }
+            }
+            else if(damage_enemies_melee(player3,fire,player3->curr_weapon,player3->has_power)){
+                if(fire->health<=0){
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+                }
+            }
+            else if(damage_enemies_melee(player3,undeed,player3->curr_weapon,player3->has_power)){
+                if(undeed->health<=0){
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+                }
+            }
+            else if(damage_enemies_melee(player3,snake,player3->curr_weapon,player3->has_power)){
+                if(snake->health<=0){
+                    mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",0);
+                }
+                else{
+                     mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+                }
+            }
+            else if(damage_enemies_melee(player3,giant,player3->curr_weapon,player3->has_power)){
+                if(giant->health<=0){
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+                }
+            }
+            }
+            else if(player3->curr_weapon==1 || player3->curr_weapon==2 || player3->curr_weapon==3 ){
+                char u=getchar();
+                if(damage_enemies_shooting(player3,demon,player3->curr_weapon,player3->has_power,u)){
+                   
+                if(demon->health<=0){
+                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+                }
+                }
+                else if(damage_enemies_shooting(player3,fire,player3->curr_weapon,player3->has_power,u)){
+                    
+                if(fire->health<=0){
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+                }
+                }
+                else if(damage_enemies_shooting(player3,giant,player3->curr_weapon,player3->has_power,u)){
+                    
+                if(giant->health<=0){
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+                }
+                }
+                else if(damage_enemies_shooting(player3,snake,player3->curr_weapon,player3->has_power,u)){
+                   
+                if(snake->health<=0){
+                    mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",0);
+                }
+                else{
+                     mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+                }
+                }
+                else if(damage_enemies_shooting(player3,undeed,player3->curr_weapon,player3->has_power,u)){
+                    
+                if(undeed->health<=0){
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+                }
+                }
+            }
+            player3->weapon[player3->curr_weapon].count+=4;
+        }
+        if(check_monster(demon)){
+            mvprintw(26,70,"YOU KILLED DEMON");
+                attron(COLOR_PAIR(5));
+                mvprintw(demon->ypos,demon->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[demon->ypos][demon->xpos]='.';
+                demon->ypos=0;
+                demon->xpos=0;
+                move(player3->ypos,player3->xpos);
+                demon->mark=1;
+        }
+        else if(check_monster(fire)){
+            mvprintw(26,70,"YOU KILLED FIRE MONSTER");
+                attron(COLOR_PAIR(5));
+                mvprintw(fire->ypos,fire->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[fire->ypos][fire->xpos]='.';
+                fire->ypos=0;
+                fire->xpos=0;
+                move(player3->ypos,player3->xpos);
+                fire->mark=1;
+        }
+        else if(check_monster(giant)){
+            mvprintw(26,70,"YOU KILLED GIANT");
+                attron(COLOR_PAIR(5));
+                mvprintw(giant->ypos,giant->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[giant->ypos][giant->xpos]='.';
+                giant->ypos=0;
+                giant->xpos=0;
+                move(player3->ypos,player3->xpos);
+                giant->mark=1;
+        }
+        else if(check_monster(snake)){
+            mvprintw(26,70,"YOU KILLED SNAKE");
+                attron(COLOR_PAIR(5));
+                mvprintw(snake->ypos,snake->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[snake->ypos][snake->xpos]='.';
+                snake->ypos=0;
+                snake->xpos=0;
+                move(player3->ypos,player3->xpos);
+                snake->mark=1;
+        }
+        else if(check_monster(undeed)){
+            mvprintw(26,70,"YOU KILLED UNDEED");
+            attron(COLOR_PAIR(5));
+                mvprintw(undeed->ypos,undeed->xpos,".");
+                attroff(COLOR_PAIR(5));
+                undeed->ypos=0;
+                undeed->xpos=0;
+                map[undeed->ypos][undeed->xpos]='.';
+                move(player3->ypos,player3->xpos);
+                undeed->mark=1;
         }
         if(player3->health<=0){
             clear();
@@ -2042,8 +3295,8 @@ int main_map() {
         if(player3->hungriness>=50){
             player3->health--;
         }
-        else if(player3->hungriness<150 && player3->health<(health-2)){
-            player3->health+=3;
+        else if(player3->hungriness<150 && player3->health<=(health-1)){
+            player3->health+=1;
         }
         refresh();
     }
@@ -2059,9 +3312,9 @@ int main_map() {
     free(undeed);
     free(snake);
     clear();
-    map = malloc(MAP_HEIGHT * sizeof(char*));
+    map = (char**)malloc(MAP_HEIGHT * sizeof(char*));
     for(int i=0;i<MAP_HEIGHT;i++){
-        *(map+i)=malloc(MAP_WIDTH*sizeof(char));
+        *(map+i)=(char*)malloc(MAP_WIDTH*sizeof(char));
     }
     Room rooms4[ROOM_COUNT];
     generate_rooms(rooms4, ROOM_COUNT,4);
@@ -2119,34 +3372,220 @@ int main_map() {
         }
             draw_health_bar(0,40,player4->health,health);
             if(reduce_health(player4,demon)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<DEMON HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player4,undeed)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<UNDEED HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player4,snake)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<SNAKE HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player4,giant)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<GIANT HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         else if(reduce_health(player4,fire)){
-            attron(COLOR_ORANGE);
+            attron(COLOR_PAIR(8));
             mvprintw(24,70,"<FIRE MONSTER HIT YOU>");
-            attroff(COLOR_ORANGE);
+            attroff(COLOR_PAIR(8));
         }
         global++;
         if(global%10==0){
-            mvprintw(24,10,"              ");
-            mvprintw(24,70,"                        ");
+            mvprintw(0,80,"                                      ");
+            mvprintw(24,10,"                    ");
+            mvprintw(24,70,"                            ");
+            mvprintw(25,60,"                                               ");
+            mvprintw(26,70,"                           ");
+        }
+        if(player4->has_speed){
+            speed_global++;
+        }
+        if(player4->has_power){
+            power_global++;
+        }
+        if(player4->has_health){
+            health_global++;
+        }
+        if(speed_global%10==0){
+            player4->has_speed=0;
+        }
+        if(power_global%10==0){
+            player4->has_power=0;
+        }
+        if(health_global%10==0){
+            player4->has_health=0;
+        }
+        if(player4->has_power){
+            player4->weapon[MACE].damage=10;
+            player4->weapon[DAGGER].damage=24;
+            player4->weapon[SWORD].damage=20;
+            player4->weapon[NORMAL_ARROW].damage=10;
+            player4->weapon[MAGIC_WAND].damage=30;
+        }
+        if(!(player4->has_power)){
+            player4->weapon[MACE].damage=5;
+            player4->weapon[DAGGER].damage=12;
+            player4->weapon[SWORD].damage=10;
+            player4->weapon[NORMAL_ARROW].damage=5;
+            player4->weapon[MAGIC_WAND].damage=15;
+        }
+        if(player4->has_health && player4->health<=(health-2)){
+            player4->health+=2;
+        } 
+        if(input==' '){
+            if(player4->curr_weapon==MACE || player4->curr_weapon==SWORD){
+            if(damage_enemies_melee(player4,demon,player4->curr_weapon,player4->has_power)){
+                if(demon->health<=0){
+                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+                }
+            }
+            else if(damage_enemies_melee(player4,fire,player4->curr_weapon,player4->has_power)){
+                if(fire->health<=0){
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+                }
+            }
+            else if(damage_enemies_melee(player4,undeed,player4->curr_weapon,player4->has_power)){
+                if(undeed->health<=0){
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+                }
+            }
+            else if(damage_enemies_melee(player4,snake,player4->curr_weapon,player4->has_power)){
+                if(snake->health<=0){
+                    mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",0);
+                }
+                else{
+                     mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+                }
+            }
+            else if(damage_enemies_melee(player4,giant,player4->curr_weapon,player4->has_power)){
+                if(giant->health<=0){
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+                }
+            }
+            }
+            else if(player4->curr_weapon==1 || player4->curr_weapon==2 || player4->curr_weapon==3 ){
+                char u=getchar();
+                if(damage_enemies_shooting(player4,demon,player4->curr_weapon,player4->has_power,u)){
+                   
+                if(demon->health<=0){
+                mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT DEMON,DEMON CURRENT HEALTH:%d",demon->health);
+                }
+                }
+                else if(damage_enemies_shooting(player4,fire,player4->curr_weapon,player4->has_power,u)){
+                    
+                if(fire->health<=0){
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT FIRE MONSTER,FIRE MONSTER CURRENT HEALTH:%d",fire->health);
+                }
+                }
+                else if(damage_enemies_shooting(player4,giant,player4->curr_weapon,player4->has_power,u)){
+                    
+                if(giant->health<=0){
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT GIANT,GIANT CURRENT HEALTH:%d",giant->health);
+                }
+                }
+                else if(damage_enemies_shooting(player4,snake,player4->curr_weapon,player4->has_power,u)){
+                   
+                if(snake->health<=0){
+                    mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",0);
+                }
+                else{
+                     mvprintw(25,60,"YOU HIT SNAKE,SNAKE CURRENT HEALTH:%d",snake->health);
+                }
+                }
+                else if(damage_enemies_shooting(player4,undeed,player4->curr_weapon,player4->has_power,u)){
+                    
+                if(undeed->health<=0){
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",0);
+                }
+                else{
+                    mvprintw(25,60,"YOU HIT UNDEED,UNDEED CURRENT HEALTH:%d",undeed->health);
+                }
+                }
+            }
+            player4->weapon[player4->curr_weapon].count+=4;
+        }
+        if(check_monster(demon)){
+            mvprintw(26,70,"YOU KILLED DEMON");
+                attron(COLOR_PAIR(5));
+                mvprintw(demon->ypos,demon->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[demon->ypos][demon->xpos]='.';
+                demon->ypos=0;
+                demon->xpos=0;
+                move(player4->ypos,player4->xpos);
+                demon->mark=1;
+        }
+        else if(check_monster(fire)){
+            mvprintw(26,70,"YOU KILLED FIRE MONSTER");
+                attron(COLOR_PAIR(5));
+                mvprintw(fire->ypos,fire->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[fire->ypos][fire->xpos]='.';
+                fire->ypos=0;
+                fire->xpos=0;
+                move(player4->ypos,player4->xpos);
+                fire->mark=1;
+        }
+        else if(check_monster(giant)){
+            mvprintw(26,70,"YOU KILLED GIANT");
+                attron(COLOR_PAIR(5));
+                mvprintw(giant->ypos,giant->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[giant->ypos][giant->xpos]='.';
+                giant->ypos=0;
+                giant->xpos=0;
+                move(player4->ypos,player4->xpos);
+                giant->mark=1;
+        }
+        else if(check_monster(snake)){
+            mvprintw(26,70,"YOU KILLED SNAKE");
+                attron(COLOR_PAIR(5));
+                mvprintw(snake->ypos,snake->xpos,".");
+                attroff(COLOR_PAIR(5));
+                map[snake->ypos][snake->xpos]='.';
+                snake->ypos=0;
+                snake->xpos=0;
+                move(player4->ypos,player4->xpos);
+                snake->mark=1;
+        }
+        else if(check_monster(undeed)){
+            mvprintw(26,70,"YOU KILLED UNDEED");
+            attron(COLOR_PAIR(5));
+                mvprintw(undeed->ypos,undeed->xpos,".");
+                attroff(COLOR_PAIR(5));
+                undeed->ypos=0;
+                undeed->xpos=0;
+                map[undeed->ypos][undeed->xpos]='.';
+                move(player4->ypos,player4->xpos);
+                undeed->mark=1;
         }
         if(player4->health<=0){
             clear();
@@ -2167,8 +3606,8 @@ int main_map() {
         if(player4->hungriness>=50){
             player4->health--;
         }
-        else if(player4->hungriness<150 && player4->health<(health-2)){
-            player4->health+=3;
+        else if(player4->hungriness<150 && player4->health<=(health-1)){
+            player4->health+=1;
         }
         refresh();
     }
@@ -2187,4 +3626,4 @@ int main_map() {
     endwin();
     return 0;
 }
-#endif map_h
+ #endif map_h
